@@ -1,0 +1,280 @@
+body{
+    margin:0;
+    font-family:'Inter',sans-serif;
+    background:linear-gradient(135deg,#f3e8ff,#e0c3fc);
+    color:#2d1b3d;
+    overflow-x:hidden;
+}
+
+/* HEADER */
+
+header{
+    position:fixed;
+    width:100%;
+    top:0;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:15px 40px;
+    background:rgba(255,255,255,0.3);
+    backdrop-filter:blur(15px);
+    z-index:1000;
+    box-sizing:border-box;
+}
+
+.logo{
+    font-family:'Playfair Display',serif;
+}
+
+nav a{
+    text-decoration:none;
+    margin:0 12px;
+    color:#2d1b3d;
+    transition:0.3s;
+}
+
+nav a:hover{
+    color:#9c27b0;
+}
+
+/* HERO */
+
+.hero{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:20px;
+}
+
+.hero-content{
+    max-width:700px;
+}
+
+.hero h1{
+    font-size:4rem;
+    margin-bottom:10px;
+    font-family:'Playfair Display',serif;
+}
+
+.hero p{
+    font-size:1.3rem;
+}
+
+/* BOTONES */
+
+.main-btn,
+.blog-btn{
+    padding:15px 30px;
+    border:none;
+    border-radius:30px;
+    background:linear-gradient(45deg,#e91e63,#9c27b0);
+    color:white;
+    cursor:pointer;
+    margin-top:20px;
+    font-size:1rem;
+    transition:0.3s;
+    box-shadow:0 10px 20px rgba(0,0,0,0.15);
+}
+
+.main-btn:hover,
+.blog-btn:hover{
+    transform:scale(1.08);
+}
+
+/* SECTIONS */
+
+section{
+    max-width:1100px;
+    margin:auto;
+    padding:80px 20px;
+}
+
+/* ABOUT */
+
+.about{
+    display:flex;
+    gap:40px;
+    align-items:center;
+}
+
+.about img{
+    width:320px;
+    border-radius:25px;
+}
+
+/* HISTORIA */
+
+.historia-container{
+    display:flex;
+    gap:40px;
+    align-items:center;
+}
+
+.historia img{
+    width:350px;
+    border-radius:25px;
+}
+
+/* BOX */
+
+.box{
+    background:rgba(255,255,255,0.55);
+    padding:25px;
+    border-radius:25px;
+    backdrop-filter:blur(10px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+/* TESTIMONIOS */
+
+.testimonials{
+    text-align:center;
+    font-size:1.5rem;
+}
+
+/* BLOG */
+
+.blog-section{
+    text-align:center;
+}
+
+.blog-title{
+    font-size:3rem;
+}
+
+.blog-subtitle{
+    color:#5f4b66;
+    margin-bottom:40px;
+}
+
+.blog-container{
+    display:flex;
+    justify-content:center;
+    gap:30px;
+    flex-wrap:wrap;
+}
+
+.blog-card{
+    width:300px;
+    border-radius:25px;
+    overflow:hidden;
+    background:rgba(255,255,255,0.55);
+    backdrop-filter:blur(10px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.15);
+    transition:0.4s;
+}
+
+.blog-card:hover{
+    transform:translateY(-10px) scale(1.03);
+}
+
+.blog-card img{
+    width:100%;
+    height:200px;
+    object-fit:cover;
+}
+
+.blog-card h3{
+    margin-top:20px;
+}
+
+.blog-card p{
+    padding:0 20px;
+}
+
+.coming-soon{
+    margin-top:40px;
+    font-size:1.3rem;
+    font-weight:bold;
+}
+
+/* EQUIPO */
+
+.card-container{
+    display:flex;
+    justify-content:center;
+    gap:25px;
+    flex-wrap:wrap;
+}
+
+.card{
+    background:white;
+    border-radius:25px;
+    overflow:hidden;
+    width:260px;
+    transition:0.4s;
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+.card:hover{
+    transform:translateY(-10px);
+}
+
+.card img{
+    width:100%;
+}
+
+/* CONTACT */
+
+.contact{
+    text-align:center;
+}
+
+form{
+    display:flex;
+    flex-direction:column;
+    width:350px;
+    margin:auto;
+}
+
+input,
+textarea{
+    margin:10px 0;
+    padding:15px;
+    border:none;
+    border-radius:15px;
+    font-size:1rem;
+}
+
+/* FOOTER */
+
+footer{
+    text-align:center;
+    padding:30px;
+}
+
+/* ANIMACIONES */
+
+.reveal{
+    opacity:0;
+    transform:translateY(50px);
+    transition:1s;
+}
+
+.reveal.active{
+    opacity:1;
+    transform:translateY(0);
+}
+
+/* RESPONSIVE */
+
+@media(max-width:768px){
+
+    .about,
+    .historia-container{
+        flex-direction:column;
+        text-align:center;
+    }
+
+    .hero h1{
+        font-size:2.5rem;
+    }
+
+    header{
+        flex-direction:column;
+        gap:10px;
+    }
+
+}
