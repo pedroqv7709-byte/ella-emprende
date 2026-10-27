@@ -86,10 +86,14 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
 .player h3 .dot{width:12px;height:12px;border-radius:50%;background:var(--pc);box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
 .player .turn{margin-left:auto;font-size:.72rem;font-family:'Inter',sans-serif;background:var(--pc);color:#f6eedf;padding:2px 8px;border-radius:6px;opacity:0;transition:.4s}
 .player.active .turn{opacity:1}
+.players .prog{grid-column:1/-1;color:var(--onwood);margin-top:0}
 .prog{display:flex;align-items:center;gap:6px;font-size:.85rem;margin-top:4px}
 .prog .bar{flex:1;height:7px;border-radius:99px;background:var(--line);overflow:hidden}
 .prog .bar i{display:block;height:100%;background:var(--tc);transition:width .6s}
 
+.score{font-size:.9rem;color:var(--muted)}
+.score .pts{font-family:'Lora',serif;font-size:1.6rem;font-weight:600;color:var(--pc);vertical-align:-2px}
+.score .miss{font-size:.8rem}
 .status{
     text-align:center;font-family:'Lora',serif;font-size:1rem;
     background:var(--panel);border-radius:12px;padding:8px 12px;margin-bottom:12px;min-height:40px;
@@ -141,7 +145,7 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
     display:flex;align-items:center;justify-content:center;color:rgba(246,238,223,.55);font-size:.8rem;
 }
 .back:first-child{margin-top:0}
-.back.marked{outline:2px dashed var(--mk);outline-offset:-5px}
+.back.marked{outline:2px dashed rgba(243,230,208,.6);outline-offset:-5px}
 .back.bottom{border-color:var(--onwood);box-shadow:0 0 0 2px rgba(243,230,208,.5),0 2px 2px rgba(0,0,0,.3)}
 .pull{
     margin-top:6px;width:100%;border-radius:8px;padding:8px 4px;font-weight:600;
@@ -157,7 +161,7 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
 }
 .overlay.show{display:flex}
 .reveal-box{text-align:center;max-width:340px;width:100%}
-.flip{perspective:900px;width:220px;height:280px;margin:0 auto 14px}
+.flip{perspective:900px;width:220px;height:260px;margin:0 auto 12px}
 .flip-inner{position:relative;width:100%;height:100%;transition:transform .8s ease-in-out;transform-style:preserve-3d}
 .flip.on .flip-inner{transform:rotateY(180deg)}
 .face{
@@ -169,11 +173,30 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
     color:rgba(246,238,223,.6);font-size:3rem;border:1px solid rgba(40,20,8,.5);
 }
 .face.f-front{
-    transform:rotateY(180deg);background:var(--paper);color:var(--ink);border:1px solid var(--line);border-bottom:8px solid var(--tc);
+    transform:rotateY(180deg);background:var(--paper);color:var(--ink);border:4px solid #c9b48f;
 }
 .face.f-front .big{font-size:3.6rem;filter:saturate(.8)}
 .face.f-front .txt{font-family:'Lora',serif;font-size:1.3rem;font-weight:600;margin-top:8px}
 .face.f-front .tag{margin-top:10px;color:color-mix(in srgb,var(--tc) 75%,#2a1c12);border:1px solid var(--tc);border-radius:6px;padding:3px 10px;font-size:.85rem}
+.face.f-front{transition:background .4s,border-color .4s}
+.face.f-front.right{background:#dfeccf;border-color:#4f7a45}
+.face.f-front.wrong{background:#f2d6cf;border-color:#a8433a}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.choices:empty{display:none}
+.choice{
+    border-radius:10px;padding:10px 8px;font-family:'Lora',serif;font-weight:600;font-size:.92rem;
+    background:var(--paper);color:color-mix(in srgb,var(--tc) 70%,#2a1c12);
+    border:1px solid var(--line);border-bottom:4px solid var(--tc);box-shadow:0 2px 0 rgba(0,0,0,.25);
+    transition:background .3s,color .3s,opacity .3s;
+}
+.choice:disabled{cursor:default;background:var(--paper2);color:var(--muted);border-bottom-color:var(--line)}
+.choice.right{background:#4f7a45;color:#f6eedf;border-color:#36592f;opacity:1}
+.choice.wrong{background:#a8433a;color:#f6eedf;border-color:#7d2f28;opacity:1}
+.choice.answer{opacity:1;outline:2px solid #4f7a45;outline-offset:2px}
+.col.flash-ok{animation:flashOk 1.4s ease-out}
+.col.flash-bad{animation:flashBad 1.4s ease-out}
+@keyframes flashOk{0%{background:rgba(110,160,90,.55)}100%{background:var(--tray)}}
+@keyframes flashBad{0%{background:rgba(180,70,55,.55)}100%{background:var(--tray)}}
 .reveal-msg{color:var(--onwood);font-family:'Lora',serif;font-size:1.08rem;margin-bottom:12px;min-height:2.6em}
 
 /* Ajustes */
@@ -254,6 +277,7 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
             </div>
         </div>
         <div class="reveal-msg" id="revealMsg"></div>
+        <div class="choices" id="choices"></div>
         <button class="btn primary" id="revealBtn"></button>
     </div>
 </div>
@@ -264,12 +288,12 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
         <h2 class="fun">📖 Cómo se juega</h2>
         <ol class="rules">
             <li>El tablero tiene <b>4 columnas</b>. Arriba de cada una hay una ficha boca arriba con su <b>tema</b>; debajo, fichas boca abajo mezcladas.</li>
-            <li>Cada jugador tiene <b>2 temas</b>. Los dos juegan sobre el mismo tablero, alternando turnos.</li>
-            <li><b>Turno:</b> elige una columna y pulsa <b>“Sacar ↓”</b>: la columna se empuja hacia abajo y sale la ficha de abajo (marcada en amarillo). Se voltea.</li>
-            <li>Si la ficha es de <b>uno de tus temas</b>, se coloca boca arriba en la columna de ese tema y <b>vuelves a jugar</b>.</li>
-            <li>Si es de un tema de tu rival, la <b>sigues usando</b>: la empujas boca abajo por <b>arriba</b> de la columna que elijas (cuanto más arriba, más le costará al rival encontrarla). Tu turno termina.</li>
-            <li>¡Recuerda dónde se esconden las fichas! Las fichas que ya se vieron quedan marcadas con un borde del color del rival.</li>
-            <li><b>Gana</b> quien coloque primero todas las fichas de sus 2 temas. Si se voltean todas las fichas, gana quien haya colocado más.</li>
+            <li>Juegan <b>2 jugadores</b> sobre el mismo tablero, por turnos.</li>
+            <li><b>Turno:</b> pulsa <b>“Sacar ↓”</b> en una columna: se empuja hacia abajo y sale la ficha de abajo. Se voltea.</li>
+            <li><b>Tú eliges</b> en qué columna va esa ficha.</li>
+            <li>Si aciertas, la ficha se pone <b style="color:#4f7a45">verde</b>, se coloca en su columna, ganas <b>1 punto</b> y vuelves a jugar.</li>
+            <li>Si fallas, se pone <b style="color:#a8433a">roja</b>: no hay punto, la ficha vuelve boca abajo por arriba de su columna y <b>pierdes el turno</b>. Las fichas falladas quedan marcadas con borde punteado.</li>
+            <li>Cuando todas las fichas están colocadas, <b>gana quien tenga más puntos</b>.</li>
             <li>Con <b>🎨 Temas</b> puedes cambiar los temas, iconos, colores y fichas, o cargar un ejemplo.</li>
         </ol>
         <button class="btn primary" data-close>¡Entendido!</button>
@@ -289,12 +313,6 @@ main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
         <div class="row">
             <label>Jugador 1</label><input type="text" id="p0name" maxlength="16">
             <label>Jugador 2</label><input type="text" id="p1name" maxlength="16">
-            <label>Reparto de temas</label>
-            <select id="assign">
-                <option value="fixed">J1: temas 1 y 2 · J2: temas 3 y 4</option>
-                <option value="alt">J1: temas 1 y 3 · J2: temas 2 y 4</option>
-                <option value="random">Al azar en cada partida</option>
-            </select>
         </div>
         <p class="hint">Una ficha por línea (entre 2 y 12 por tema). Puedes empezar la línea con un emoji para darle su propio icono, p. ej. <code>🐶 Perro</code>.</p>
         <div class="themes-edit" id="themesEdit"></div>
@@ -342,7 +360,7 @@ function loadConfig(){
             if(Array.isArray(c.themes) && c.themes.length === 4) return c;
         }
     }catch(e){}
-    return {players:['Jugador 1','Jugador 2'], assign:'fixed', themes:clone(PRESETS.sociologia)};
+    return {players:['Jugador 1','Jugador 2'], themes:clone(PRESETS.sociologia)};
 }
 function saveConfig(){
     try{ localStorage.setItem(STORE_KEY, JSON.stringify(config)); }catch(e){}
@@ -358,26 +376,21 @@ function shuffle(a){
 function esc(s){
     return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-// "🐶 Perro" -> {icon:'🐶', text:'Perro'}; sin emoji usa el icono del tema
-function parseCard(line, themeIcon){
+// "🐶 Perro" -> {icon:'🐶', text:'Perro'}; sin emoji no lleva icono (el del tema delataría la respuesta)
+function parseCard(line){
     const m = line.match(/^((?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:️|‍|\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*(.*)$/u);
     if(m && m[2]) return {icon:m[1], text:m[2]};
-    return {icon:themeIcon, text:line};
+    return {icon:'', text:line};
 }
 
 /* ---------- Partida ---------- */
 function newGame(){
     const themes = config.themes;
-    let owners;
-    if(config.assign === 'alt') owners = [0,1,0,1];
-    else if(config.assign === 'random') owners = shuffle([0,0,1,1]);
-    else owners = [0,0,1,1];
-
     const cards = [];
     themes.forEach((t, ti) => {
         t.cards.forEach(line => {
-            const c = parseCard(line, t.icon);
-            cards.push({id:cards.length, theme:ti, icon:c.icon, text:c.text, seenBy:null});
+            const c = parseCard(line);
+            cards.push({id:cards.length, theme:ti, icon:c.icon, text:c.text, seen:false});
         });
     });
     const order = shuffle(cards.map(c => c.id));
@@ -385,93 +398,103 @@ function newGame(){
     order.forEach((id, i) => cols[i % 4].hidden.push(id));
 
     document.querySelectorAll('.confetti').forEach(el => el.remove());
-    G = {owners, cards, cols, cur:Math.random() < .5 ? 0 : 1, phase:'pick', held:null, from:null};
-    say(`🎲 Empieza <b style="color:${PLAYER_COLORS[G.cur]}">${esc(config.players[G.cur])}</b>. Elige una columna y saca la ficha de abajo.`);
+    G = {cards, cols, cur:Math.random() < .5 ? 0 : 1, phase:'pick', held:null, from:null,
+         score:[0,0], misses:[0,0], flash:null};
+    say(`🎲 Empieza ${who(G.cur)}. Elige una columna y saca la ficha de abajo.`);
     render();
 }
 
-function remaining(p){
-    return G.cards.filter(c => G.owners[c.theme] === p && !G.cols[c.theme].placed.includes(c.id)).length;
-}
-function totalOf(p){ return G.cards.filter(c => G.owners[c.theme] === p).length; }
-function placedOf(p){ return totalOf(p) - remaining(p); }
+function who(p){ return `<b style="color:${PLAYER_COLORS[p]}">${esc(config.players[p])}</b>`; }
 
 function pull(ci){
     if(G.phase !== 'pick') return;
     const col = G.cols[ci];
     if(!col.hidden.length) return;
     const id = col.hidden.pop(); // la ficha de abajo
-    G.held = id; G.from = ci; G.phase = 'reveal';
+    G.held = id; G.from = ci; G.phase = 'choose';
     render();
     showReveal(G.cards[id]);
 }
 
 function showReveal(card){
-    const t = config.themes[card.theme];
-    const owner = G.owners[card.theme];
-    const mine = owner === G.cur;
     const front = $('#front');
-    front.style.setProperty('--tc', t.color);
-    front.innerHTML = `<div class="big">${esc(card.icon)}</div><div class="txt">${esc(card.text)}</div><div class="tag">${esc(t.icon)} ${esc(t.name)}</div>`;
+    front.className = 'face f-front';
+    front.innerHTML = `${card.icon ? `<div class="big">${esc(card.icon)}</div>` : ''}<div class="txt">${esc(card.text)}</div>`;
     const flip = $('#flip');
     flip.classList.remove('on');
     $('#revealMsg').innerHTML = '';
-    $('#revealBtn').style.visibility = 'hidden';
+    $('#choices').innerHTML = '';
+    $('#revealBtn').style.display = 'none';
     $('#revealOv').classList.add('show');
     setTimeout(() => {
         flip.classList.add('on');
         setTimeout(() => {
-            $('#revealMsg').innerHTML = mine
-                ? `✨ ¡Es de tu tema <b>${esc(t.name)}</b>! Se coloca en su columna y vuelves a jugar.`
-                : `😅 Es de <b>${esc(config.players[owner])}</b> (${esc(t.name)}). Empújala por arriba de una columna para esconderla.`;
-            $('#revealBtn').textContent = mine ? '✅ Colocar' : '👆 Elegir columna';
-            $('#revealBtn').style.visibility = 'visible';
-        }, 650);
+            $('#revealMsg').innerHTML = '¿En qué columna va esta ficha?';
+            $('#choices').innerHTML = config.themes.map((t, i) =>
+                `<button class="choice" data-choice="${i}" style="--tc:${t.color}">${esc(t.icon)} ${esc(t.name)}</button>`).join('');
+        }, 700);
     }, 120);
 }
 
-function resolveReveal(){
-    $('#revealOv').classList.remove('show');
+function choose(ci){
+    if(G.phase !== 'choose') return;
     const card = G.cards[G.held];
-    if(G.owners[card.theme] === G.cur){
-        G.cols[card.theme].placed.push(card.id);
-        G.held = null; G.phase = 'pick';
-        if(remaining(G.cur) === 0) return finish(G.cur);
-        if(allHiddenGone()) return finishByScore();
-        say(`🎉 ¡Bien! <b style="color:${PLAYER_COLORS[G.cur]}">${esc(config.players[G.cur])}</b> sigue jugando.`);
+    const ok = card.theme === ci;
+    const t = config.themes[card.theme];
+    G.phase = 'result';
+    $('#front').classList.add(ok ? 'right' : 'wrong');
+    document.querySelectorAll('.choice').forEach(b => {
+        b.disabled = true;
+        if(+b.dataset.choice === ci) b.classList.add(ok ? 'right' : 'wrong');
+        else if(!ok && +b.dataset.choice === card.theme) b.classList.add('answer');
+    });
+    if(ok){
+        G.score[G.cur]++;
+        G.cols[ci].placed.push(card.id);
+        $('#revealMsg').innerHTML = `✅ ¡Correcto! +1 punto para ${who(G.cur)}.`;
+        $('#revealBtn').textContent = 'Seguir jugando';
     }else{
-        G.phase = 'bury';
-        say(`👆 Toca la columna donde quieres empujar la ficha <b>${esc(card.icon)} ${esc(card.text)}</b> por arriba.`);
+        G.misses[G.cur]++;
+        card.seen = true;
+        G.cols[G.from].hidden.unshift(card.id); // vuelve boca abajo por arriba
+        $('#revealMsg').innerHTML = `❌ No va ahí: era <b>${esc(t.icon)} ${esc(t.name)}</b>. Sin punto y pierdes el turno.`;
+        $('#revealBtn').textContent = 'Pasar el turno';
+    }
+    G.flash = {col: ci, ok};
+    G.held = null;
+    $('#revealBtn').style.display = '';
+}
+
+function afterResult(){
+    if(G.phase !== 'result') return;
+    $('#revealOv').classList.remove('show');
+    const ok = G.flash.ok;
+    G.phase = 'pick';
+    if(allPlaced()) return finish();
+    if(ok){
+        say(`🎉 ¡Bien! ${who(G.cur)} sigue jugando.`);
+    }else{
+        G.cur = 1 - G.cur;
+        say(`Turno de ${who(G.cur)}. Saca una ficha de abajo.`);
     }
     render();
+    G.flash = null;
 }
 
-function bury(ci){
-    if(G.phase !== 'bury') return;
-    const card = G.cards[G.held];
-    card.seenBy = G.cur;
-    G.cols[ci].hidden.unshift(card.id); // entra por arriba y empuja la columna
-    G.held = null; G.phase = 'pick';
-    G.cur = 1 - G.cur;
-    say(`Turno de <b style="color:${PLAYER_COLORS[G.cur]}">${esc(config.players[G.cur])}</b>. Saca una ficha de abajo.`);
-    render();
-}
+function allPlaced(){ return G.cols.every(c => !c.hidden.length); }
 
-function allHiddenGone(){ return G.cols.every(c => !c.hidden.length); }
-
-function finish(p){
+function finish(){
     G.phase = 'over';
-    say(`🏆 ¡<b style="color:${PLAYER_COLORS[p]}">${esc(config.players[p])}</b> colocó todas sus fichas y gana la partida!`);
-    render();
-    confetti(config.themes.filter((t, i) => G.owners[i] === p).map(t => t.icon));
-}
-function finishByScore(){
-    const a = placedOf(0), b = placedOf(1);
+    const [a, b] = G.score;
     if(a === b){
-        G.phase = 'over';
-        say('🤝 Se voltearon todas las fichas: ¡empate!');
+        say(`🤝 Se colocaron todas las fichas: ¡empate a ${a} puntos!`);
         render();
-    }else finish(a > b ? 0 : 1);
+        return;
+    }
+    const p = a > b ? 0 : 1;
+    say(`🏆 ¡${who(p)} gana con ${G.score[p]} puntos frente a ${G.score[1 - p]}!`);
+    render();
+    confetti(config.themes.map(t => t.icon));
 }
 
 function say(html){ $('#status').innerHTML = html; }
@@ -479,38 +502,34 @@ function say(html){ $('#status').innerHTML = html; }
 /* ---------- Dibujo ---------- */
 function render(){
     const themes = config.themes;
+    const total = G.cards.length;
+    const placed = G.cols.reduce((n, c) => n + c.placed.length, 0);
     // marcador
-    $('#players').innerHTML = [0,1].map(p => {
-        const mine = themes.map((t, i) => ({t, i})).filter(x => G.owners[x.i] === p);
-        return `<div class="player ${G.cur === p && G.phase !== 'over' ? 'active' : ''}" style="--pc:${PLAYER_COLORS[p]}">
+    $('#players').innerHTML = [0,1].map(p => `
+        <div class="player ${G.cur === p && G.phase !== 'over' ? 'active' : ''}" style="--pc:${PLAYER_COLORS[p]}">
             <h3 class="fun"><span class="dot"></span>${esc(config.players[p])}<span class="turn">Su turno</span></h3>
-            ${mine.map(({t, i}) => {
-                const total = t.cards.length, done = G.cols[i].placed.length;
-                return `<div class="prog" style="--tc:${t.color}">${esc(t.icon)} <span>${done}/${total}</span><div class="bar"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div>`;
-            }).join('')}
-        </div>`;
-    }).join('');
+            <div class="score"><span class="pts">${G.score[p]}</span> ${G.score[p] === 1 ? 'punto' : 'puntos'}
+                <span class="miss">· ${G.misses[p]} ${G.misses[p] === 1 ? 'fallo' : 'fallos'}</span></div>
+        </div>`).join('') +
+        `<div class="prog" style="--tc:var(--onwood)"><span>${placed}/${total} colocadas</span><div class="bar"><i style="width:${placed / total * 100}%"></i></div></div>`;
 
     // columnas
     $('#board').innerHTML = themes.map((t, ci) => {
         const col = G.cols[ci];
-        const owner = G.owners[ci];
-        const cls = G.phase === 'bury' ? 'target' : (G.phase === 'pick' && !col.hidden.length ? 'dim' : '');
+        let cls = G.phase === 'pick' && !col.hidden.length ? 'dim' : '';
+        if(G.flash && G.flash.col === ci) cls += G.flash.ok ? ' flash-ok' : ' flash-bad';
         const backs = col.hidden.map((id, k) => {
-            const c = G.cards[id];
             const isBottom = k === col.hidden.length - 1;
-            const marked = c.seenBy !== null;
-            return `<div class="back${marked ? ' marked' : ''}${isBottom ? ' bottom' : ''}"${marked ? ` style="--mk:${PLAYER_COLORS[G.owners[c.theme]]}"` : ''}>${isBottom ? '⬇' : '✦'}</div>`;
+            return `<div class="back${G.cards[id].seen ? ' marked' : ''}${isBottom ? ' bottom' : ''}">${isBottom ? '⬇' : '✦'}</div>`;
         }).join('');
-        return `<div class="col ${cls}" data-col="${ci}" data-icon="${esc(t.icon)}" style="--tc:${t.color}">
+        return `<div class="col ${cls}" data-col="${ci}" style="--tc:${t.color}">
             <div class="theme-card">
                 <span class="ic">${esc(t.icon)}</span>
                 <div class="nm">${esc(t.name)}</div>
-                <span class="ow">${esc(config.players[owner])}</span>
             </div>
             <div class="placed">${col.placed.map(id => {
                 const c = G.cards[id];
-                return `<div class="chip"><span>${esc(c.icon)}</span><b>${esc(c.text)}</b></div>`;
+                return `<div class="chip"><span>${esc(c.icon || t.icon)}</span><b>${esc(c.text)}</b></div>`;
             }).join('')}</div>
             <div class="stack-label">${col.hidden.length} boca abajo</div>
             <div class="stack">${backs}</div>
@@ -538,7 +557,6 @@ function openSettings(themes){
     themes = themes || config.themes;
     $('#p0name').value = config.players[0];
     $('#p1name').value = config.players[1];
-    $('#assign').value = config.assign;
     $('#setErr').textContent = '';
     $('#themesEdit').innerHTML = themes.map((t, i) => `
         <div class="tedit" style="--tc:${t.color}" data-t="${i}">
@@ -568,7 +586,6 @@ function saveSettings(){
     }
     config = {
         players: [$('#p0name').value.trim() || 'Jugador 1', $('#p1name').value.trim() || 'Jugador 2'],
-        assign: $('#assign').value,
         themes
     };
     saveConfig();
@@ -579,11 +596,13 @@ function saveSettings(){
 /* ---------- Eventos ---------- */
 $('#board').addEventListener('click', e => {
     const p = e.target.closest('[data-pull]');
-    if(p) return pull(+p.dataset.pull);
-    const col = e.target.closest('.col');
-    if(col && G.phase === 'bury') bury(+col.dataset.col);
+    if(p) pull(+p.dataset.pull);
 });
-$('#revealBtn').addEventListener('click', resolveReveal);
+$('#choices').addEventListener('click', e => {
+    const b = e.target.closest('[data-choice]');
+    if(b) choose(+b.dataset.choice);
+});
+$('#revealBtn').addEventListener('click', afterResult);
 $('#btnNew').addEventListener('click', () => {
     if(G.phase === 'over' || confirm('¿Empezar una nueva partida?')) newGame();
 });
