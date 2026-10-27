@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fichas por Temas</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+    --bg1:#fdf4ff;
+    --bg2:#e0f2fe;
+    --ink:#2d1b3d;
+    --muted:#6b5b7b;
+    --panel:rgba(255,255,255,.75);
+    --line:rgba(45,27,61,.12);
+    --back1:#7c3aed;
+    --back2:#db2777;
+    --p0:#7c3aed;
+    --p1:#ea580c;
+}
+@media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+        --bg1:#1b1029;
+        --bg2:#0f1d2e;
+        --ink:#f5ecff;
+        --muted:#b9a8cc;
+        --panel:rgba(30,20,45,.8);
+        --line:rgba(255,255,255,.14);
+    }
+}
+:root[data-theme="dark"]{
+    --bg1:#1b1029;
+    --bg2:#0f1d2e;
+    --ink:#f5ecff;
+    --muted:#b9a8cc;
+    --panel:rgba(30,20,45,.8);
+    --line:rgba(255,255,255,.14);
+}
+
+*{box-sizing:border-box}
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    background:
+        radial-gradient(circle at 10% 10%,rgba(236,72,153,.18),transparent 40%),
+        radial-gradient(circle at 90% 20%,rgba(59,130,246,.18),transparent 40%),
+        radial-gradient(circle at 50% 100%,rgba(16,185,129,.15),transparent 50%),
+        linear-gradient(135deg,var(--bg1),var(--bg2));
+    background-attachment:fixed;
+}
+h1,h2,h3,.fun{font-family:'Fredoka',sans-serif}
+button{font:inherit;cursor:pointer}
+
+.top{
+    display:flex;align-items:center;justify-content:space-between;gap:8px;
+    padding:12px 16px;max-width:1100px;margin:0 auto;flex-wrap:wrap;
+}
+.top h1{margin:0;font-size:1.6rem;letter-spacing:.5px}
+.top h1 span{display:inline-block;animation:wiggle 3s ease-in-out infinite}
+.top .actions{display:flex;gap:6px;flex-wrap:wrap}
+.btn{
+    border:none;border-radius:999px;padding:8px 14px;font-weight:600;
+    background:var(--panel);color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.08);
+    border:1px solid var(--line);
+}
+.btn.primary{background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff;border:none}
+.btn:hover{transform:translateY(-1px)}
+a.home{color:var(--muted);text-decoration:none;font-size:.9rem}
+
+main{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+
+/* Marcador */
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.player{
+    background:var(--panel);border-radius:16px;padding:10px 12px;border:2px solid transparent;
+    transition:.3s;backdrop-filter:blur(8px);
+}
+.player.active{border-color:var(--pc);box-shadow:0 0 0 4px color-mix(in srgb,var(--pc) 25%,transparent)}
+.player h3{margin:0 0 6px;font-size:1.1rem;display:flex;align-items:center;gap:6px}
+.player h3 .dot{width:12px;height:12px;border-radius:50%;background:var(--pc)}
+.player .turn{margin-left:auto;font-size:.75rem;background:var(--pc);color:#fff;padding:2px 8px;border-radius:999px;opacity:0;transition:.3s}
+.player.active .turn{opacity:1}
+.prog{display:flex;align-items:center;gap:6px;font-size:.85rem;margin-top:4px}
+.prog .bar{flex:1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog .bar i{display:block;height:100%;background:var(--tc);transition:width .5s}
+
+.status{
+    text-align:center;font-family:'Fredoka',sans-serif;font-size:1.05rem;
+    background:var(--panel);border-radius:14px;padding:8px 12px;margin-bottom:12px;min-height:40px;
+}
+
+/* Tablero */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.col{
+    position:relative;border-radius:18px;padding:8px;display:flex;flex-direction:column;gap:6px;
+    background:
+        linear-gradient(180deg,color-mix(in srgb,var(--tc) 22%,transparent),color-mix(in srgb,var(--tc) 6%,transparent));
+    border:2px solid color-mix(in srgb,var(--tc) 45%,transparent);
+    overflow:hidden;transition:.25s;min-height:420px;
+}
+.col::before{
+    content:attr(data-icon);position:absolute;right:-10px;bottom:-14px;font-size:90px;opacity:.12;
+    transform:rotate(-15deg);pointer-events:none;
+}
+.col.target{cursor:pointer;animation:pulse 1s infinite}
+.col.target:hover{transform:scale(1.02)}
+.col.dim{opacity:.55}
+
+.theme-card{
+    border-radius:14px;padding:8px 6px;text-align:center;color:#fff;
+    background:linear-gradient(135deg,var(--tc),color-mix(in srgb,var(--tc) 60%,#000));
+    box-shadow:0 4px 12px color-mix(in srgb,var(--tc) 40%,transparent);
+}
+.theme-card .ic{font-size:2rem;line-height:1;display:block;animation:bob 2.5s ease-in-out infinite}
+.theme-card .nm{font-family:'Fredoka',sans-serif;font-weight:700;font-size:1rem;hyphens:auto;overflow-wrap:break-word}
+.theme-card .ow{font-size:.7rem;background:rgba(255,255,255,.25);border-radius:99px;padding:1px 6px;display:inline-block;margin-top:3px}
+
+.placed{display:flex;flex-direction:column;gap:4px}
+.chip{
+    background:#fff;color:#2d1b3d;border-radius:10px;padding:4px 6px;font-size:.78rem;
+    border-left:5px solid var(--tc);display:flex;gap:4px;align-items:center;
+    animation:drop .4s ease-out;
+}
+.chip b{font-weight:400;hyphens:auto;overflow-wrap:anywhere}
+
+.stack-label{font-size:.72rem;color:var(--muted);text-align:center;margin-top:auto}
+.stack{display:flex;flex-direction:column;align-items:center}
+.back{
+    width:100%;height:34px;border-radius:10px;margin-top:-14px;
+    background:
+        repeating-linear-gradient(45deg,rgba(255,255,255,.15) 0 6px,transparent 6px 12px),
+        linear-gradient(135deg,var(--back1),var(--back2));
+    border:2px solid rgba(255,255,255,.7);box-shadow:0 2px 4px rgba(0,0,0,.15);
+    display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.85);font-size:.9rem;
+}
+.back:first-child{margin-top:0}
+.back.marked{outline:3px dashed var(--mk);outline-offset:-5px}
+.back.bottom{box-shadow:0 0 0 3px #facc15}
+.pull{
+    margin-top:6px;width:100%;border:none;border-radius:12px;padding:8px 4px;font-weight:700;
+    background:var(--tc);color:#fff;font-family:'Fredoka',sans-serif;
+}
+.pull:disabled{opacity:.35;cursor:not-allowed}
+
+/* Ficha revelada */
+.overlay{
+    position:fixed;inset:0;background:rgba(20,10,30,.55);display:none;align-items:center;justify-content:center;
+    z-index:50;padding:16px;backdrop-filter:blur(3px);
+}
+.overlay.show{display:flex}
+.reveal-box{text-align:center;max-width:340px;width:100%}
+.flip{perspective:900px;width:220px;height:280px;margin:0 auto 14px}
+.flip-inner{position:relative;width:100%;height:100%;transition:transform .7s;transform-style:preserve-3d}
+.flip.on .flip-inner{transform:rotateY(180deg)}
+.face{
+    position:absolute;inset:0;border-radius:22px;backface-visibility:hidden;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:16px;box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+.face.f-back{
+    background:repeating-linear-gradient(45deg,rgba(255,255,255,.15) 0 10px,transparent 10px 20px),linear-gradient(135deg,var(--back1),var(--back2));
+    color:#fff;font-size:4rem;border:4px solid #fff;
+}
+.face.f-front{
+    transform:rotateY(180deg);background:#fff;color:#2d1b3d;border:6px solid var(--tc);
+}
+.face.f-front .big{font-size:4.2rem}
+.face.f-front .txt{font-family:'Fredoka',sans-serif;font-size:1.35rem;font-weight:600;margin-top:8px}
+.face.f-front .tag{margin-top:10px;background:var(--tc);color:#fff;border-radius:99px;padding:3px 10px;font-size:.85rem}
+.reveal-msg{color:#fff;font-family:'Fredoka',sans-serif;font-size:1.15rem;margin-bottom:12px;min-height:2.6em}
+
+/* Ajustes */
+.modal{
+    background:var(--bg1);color:var(--ink);border-radius:20px;max-width:900px;width:100%;max-height:92vh;overflow:auto;
+    padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+.modal h2{margin:0 0 8px}
+.modal .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.modal label{font-size:.85rem;color:var(--muted)}
+.modal input[type=text],.modal textarea,.modal select{
+    font:inherit;border-radius:10px;border:1px solid var(--line);padding:6px 8px;background:var(--panel);color:var(--ink);
+}
+.themes-edit{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tedit{border-radius:14px;padding:10px;border:2px solid var(--tc);background:color-mix(in srgb,var(--tc) 10%,transparent)}
+.tedit .row{margin-bottom:6px}
+.tedit input.name{flex:1;min-width:0}
+.tedit input.icon{width:52px;text-align:center}
+.tedit input[type=color]{width:38px;height:32px;border:none;background:none;padding:0}
+.tedit textarea{width:100%;min-height:150px;resize:vertical}
+.hint{font-size:.8rem;color:var(--muted)}
+.err{color:#dc2626;font-weight:600;font-size:.9rem;min-height:1.2em}
+.rules{font-size:.92rem;line-height:1.5}
+.rules li{margin-bottom:4px}
+
+.confetti{position:fixed;top:-40px;font-size:26px;z-index:60;pointer-events:none;animation:fall linear forwards}
+
+@keyframes wiggle{0%,100%{transform:rotate(0)}50%{transform:rotate(12deg)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes drop{from{transform:translateY(-14px) scale(.8);opacity:0}to{transform:none;opacity:1}}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--tc) 60%,transparent)}50%{box-shadow:0 0 0 8px transparent}}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+
+@media (max-width:640px){
+    .top h1{font-size:1.25rem}
+    .board{gap:5px}
+    .col{padding:5px;border-radius:12px;min-height:360px}
+    .theme-card .ic{font-size:1.5rem}
+    .theme-card .nm{font-size:.7rem}
+    .theme-card .ow{font-size:.6rem}
+    .chip{font-size:.66rem;padding:3px 4px;flex-direction:column;text-align:center;gap:0}
+    .back{height:26px;margin-top:-12px;font-size:.7rem}
+    .pull{font-size:.75rem;padding:6px 2px}
+    .players{gap:6px}
+    .player{padding:8px}
+    .player h3{font-size:.95rem}
+    .prog{font-size:.72rem}
+}
+</style>
+</head>
+<body>
+
+<div class="top">
+    <div>
+        <a class="home" href="../index.html">← Ella Emprende</a>
+        <h1 class="fun"><span>🎴</span> Fichas por Temas</h1>
+    </div>
+    <div class="actions">
+        <button class="btn" id="btnRules">📖 Reglas</button>
+        <button class="btn" id="btnSettings">🎨 Temas</button>
+        <button class="btn primary" id="btnNew">🔄 Nueva partida</button>
+    </div>
+</div>
+
+<main>
+    <div class="players" id="players"></div>
+    <div class="status" id="status"></div>
+    <div class="board" id="board"></div>
+</main>
+
+<!-- Ficha revelada -->
+<div class="overlay" id="revealOv">
+    <div class="reveal-box">
+        <div class="flip" id="flip">
+            <div class="flip-inner">
+                <div class="face f-back">❓</div>
+                <div class="face f-front" id="front"></div>
+            </div>
+        </div>
+        <div class="reveal-msg" id="revealMsg"></div>
+        <button class="btn primary" id="revealBtn"></button>
+    </div>
+</div>
+
+<!-- Reglas -->
+<div class="overlay" id="rulesOv">
+    <div class="modal">
+        <h2 class="fun">📖 Cómo se juega</h2>
+        <ol class="rules">
+            <li>El tablero tiene <b>4 columnas</b>. Arriba de cada una hay una ficha boca arriba con su <b>tema</b>; debajo, fichas boca abajo mezcladas.</li>
+            <li>Cada jugador tiene <b>2 temas</b>. Los dos juegan sobre el mismo tablero, alternando turnos.</li>
+            <li><b>Turno:</b> elige una columna y pulsa <b>“Sacar ↓”</b>: la columna se empuja hacia abajo y sale la ficha de abajo (marcada en amarillo). Se voltea.</li>
+            <li>Si la ficha es de <b>uno de tus temas</b>, se coloca boca arriba en la columna de ese tema y <b>vuelves a jugar</b>.</li>
+            <li>Si es de un tema de tu rival, la <b>sigues usando</b>: la empujas boca abajo por <b>arriba</b> de la columna que elijas (cuanto más arriba, más le costará al rival encontrarla). Tu turno termina.</li>
+            <li>¡Recuerda dónde se esconden las fichas! Las fichas que ya se vieron quedan marcadas con un borde del color del rival.</li>
+            <li><b>Gana</b> quien coloque primero todas las fichas de sus 2 temas. Si se voltean todas las fichas, gana quien haya colocado más.</li>
+            <li>Con <b>🎨 Temas</b> puedes cambiar los temas, iconos, colores y fichas, o cargar un ejemplo.</li>
+        </ol>
+        <button class="btn primary" data-close>¡Entendido!</button>
+    </div>
+</div>
+
+<!-- Ajustes -->
+<div class="overlay" id="setOv">
+    <div class="modal">
+        <h2 class="fun">🎨 Temas y jugadores</h2>
+        <div class="row">
+            <label>Cargar ejemplo:</label>
+            <button class="btn" data-preset="general">🐾 Animales, comida, lugares, transporte</button>
+            <button class="btn" data-preset="sociologia">🏛️ Teorías sociológicas</button>
+            <button class="btn" data-preset="espacio">🚀 Naturaleza y espacio</button>
+        </div>
+        <div class="row">
+            <label>Jugador 1</label><input type="text" id="p0name" maxlength="16">
+            <label>Jugador 2</label><input type="text" id="p1name" maxlength="16">
+            <label>Reparto de temas</label>
+            <select id="assign">
+                <option value="fixed">J1: temas 1 y 2 · J2: temas 3 y 4</option>
+                <option value="alt">J1: temas 1 y 3 · J2: temas 2 y 4</option>
+                <option value="random">Al azar en cada partida</option>
+            </select>
+        </div>
+        <p class="hint">Una ficha por línea (entre 2 y 12 por tema). Puedes empezar la línea con un emoji para darle su propio icono, p. ej. <code>🐶 Perro</code>.</p>
+        <div class="themes-edit" id="themesEdit"></div>
+        <p class="err" id="setErr"></p>
+        <div class="row">
+            <button class="btn primary" id="saveSet">💾 Guardar y empezar</button>
+            <button class="btn" data-close>Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const PRESETS = {
+    general: [
+        {name:'Animales', icon:'🐾', color:'#f59e0b', cards:['🐶 Perro','🐱 Gato','🦁 León','🐘 Elefante','🦋 Mariposa','🐬 Delfín']},
+        {name:'Comida', icon:'🍽️', color:'#ef4444', cards:['🍎 Manzana','🍕 Pizza','🥐 Cruasán','🍓 Fresa','🧀 Queso','🌮 Taco']},
+        {name:'Lugares', icon:'🗺️', color:'#10b981', cards:['🏖️ Playa','⛰️ Montaña','🏰 Castillo','🌳 Bosque','🏥 Hospital','🏫 Escuela']},
+        {name:'Transporte', icon:'🚦', color:'#3b82f6', cards:['🚗 Coche','✈️ Avión','🚲 Bicicleta','🚢 Barco','🚂 Tren','🚁 Helicóptero']}
+    ],
+    sociologia: [
+        {name:'Positivismo', icon:'🔬', color:'#16a34a', cards:['Auguste Comte','Ley de los tres estados','Teológico, metafísico y positivo','Método científico','Observación empírica','Estática y dinámica social','Clasificación de las ciencias','Saint-Simon (antecedente)']},
+        {name:'Materialismo histórico', icon:'⚒️', color:'#dc2626', cards:['Karl Marx','Lucha de clases','Burguesía y proletariado','Alienación','Conciencia de clase','Plusvalía','Infraestructura y superestructura','Fuerzas productivas y relaciones de producción']},
+        {name:'Funcionalismo estructuralista', icon:'🏛️', color:'#2563eb', cards:['Émile Durkheim','Hecho social','Cohesión social','Consciencia colectiva','Solidaridad mecánica y orgánica','Sociedad como un organismo','Función de las instituciones','Coercitividad, colectividad y exterioridad']},
+        {name:'Interaccionismo simbólico', icon:'💬', color:'#9333ea', cards:['George H. Mead','Herbert Blumer','Erving Goffman','El self (yo social)','Símbolos y significados','Interacción cara a cara','Definición de la situación','Escuela de Chicago']}
+    ],
+    espacio: [
+        {name:'Planetas', icon:'🪐', color:'#6366f1', cards:['☀️ Sol','🌍 Tierra','🔴 Marte','🪐 Saturno','🔵 Neptuno','🌑 Luna']},
+        {name:'Océano', icon:'🌊', color:'#0891b2', cards:['🐙 Pulpo','🦈 Tiburón','🐠 Pez payaso','🐋 Ballena','🦀 Cangrejo','🪸 Coral']},
+        {name:'Flores', icon:'🌸', color:'#db2777', cards:['🌹 Rosa','🌻 Girasol','🌷 Tulipán','🌼 Margarita','🪷 Loto','🌺 Hibisco']},
+        {name:'Clima', icon:'⛅', color:'#ca8a04', cards:['🌧️ Lluvia','❄️ Nieve','⚡ Rayo','🌈 Arcoíris','🌪️ Tornado','🌫️ Niebla']}
+    ]
+};
+const STORE_KEY = 'fichasTemas.v1';
+const PLAYER_COLORS = ['#7c3aed','#ea580c'];
+const $ = s => document.querySelector(s);
+
+let config = loadConfig();
+let G = null; // estado de la partida
+
+function loadConfig(){
+    try{
+        const raw = localStorage.getItem(STORE_KEY);
+        if(raw){
+            const c = JSON.parse(raw);
+            if(Array.isArray(c.themes) && c.themes.length === 4) return c;
+        }
+    }catch(e){}
+    return {players:['Jugador 1','Jugador 2'], assign:'fixed', themes:clone(PRESETS.general)};
+}
+function saveConfig(){
+    try{ localStorage.setItem(STORE_KEY, JSON.stringify(config)); }catch(e){}
+}
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function shuffle(a){
+    for(let i = a.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// "🐶 Perro" -> {icon:'🐶', text:'Perro'}; sin emoji usa el icono del tema
+function parseCard(line, themeIcon){
+    const m = line.match(/^((?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:️|‍|\p{Extended_Pictographic}|\p{Emoji_Modifier})*)\s*(.*)$/u);
+    if(m && m[2]) return {icon:m[1], text:m[2]};
+    return {icon:themeIcon, text:line};
+}
+
+/* ---------- Partida ---------- */
+function newGame(){
+    const themes = config.themes;
+    let owners;
+    if(config.assign === 'alt') owners = [0,1,0,1];
+    else if(config.assign === 'random') owners = shuffle([0,0,1,1]);
+    else owners = [0,0,1,1];
+
+    const cards = [];
+    themes.forEach((t, ti) => {
+        t.cards.forEach(line => {
+            const c = parseCard(line, t.icon);
+            cards.push({id:cards.length, theme:ti, icon:c.icon, text:c.text, seenBy:null});
+        });
+    });
+    const order = shuffle(cards.map(c => c.id));
+    const cols = themes.map(() => ({placed:[], hidden:[]}));
+    order.forEach((id, i) => cols[i % 4].hidden.push(id));
+
+    document.querySelectorAll('.confetti').forEach(el => el.remove());
+    G = {owners, cards, cols, cur:Math.random() < .5 ? 0 : 1, phase:'pick', held:null, from:null};
+    say(`🎲 Empieza <b style="color:${PLAYER_COLORS[G.cur]}">${esc(config.players[G.cur])}</b>. Elige una columna y saca la ficha de abajo.`);
+    render();
+}
+
+function remaining(p){
+    return G.cards.filter(c => G.owners[c.theme] === p && !G.cols[c.theme].placed.includes(c.id)).length;
+}
+function totalOf(p){ return G.cards.filter(c => G.owners[c.theme] === p).length; }
+function placedOf(p){ return totalOf(p) - remaining(p); }
+
+function pull(ci){
+    if(G.phase !== 'pick') return;
+    const col = G.cols[ci];
+    if(!col.hidden.length) return;
+    const id = col.hidden.pop(); // la ficha de abajo
+    G.held = id; G.from = ci; G.phase = 'reveal';
+    render();
+    showReveal(G.cards[id]);
+}
+
+function showReveal(card){
+    const t = config.themes[card.theme];
+    const owner = G.owners[card.theme];
+    const mine = owner === G.cur;
+    const front = $('#front');
+    front.style.setProperty('--tc', t.color);
+    front.innerHTML = `<div class="big">${esc(card.icon)}</div><div class="txt">${esc(card.text)}</div><div class="tag">${esc(t.icon)} ${esc(t.name)}</div>`;
+    const flip = $('#flip');
+    flip.classList.remove('on');
+    $('#revealMsg').innerHTML = '';
+    $('#revealBtn').style.visibility = 'hidden';
+    $('#revealOv').classList.add('show');
+    setTimeout(() => {
+        flip.classList.add('on');
+        setTimeout(() => {
+            $('#revealMsg').innerHTML = mine
+                ? `✨ ¡Es de tu tema <b>${esc(t.name)}</b>! Se coloca en su columna y vuelves a jugar.`
+                : `😅 Es de <b>${esc(config.players[owner])}</b> (${esc(t.name)}). Empújala por arriba de una columna para esconderla.`;
+            $('#revealBtn').textContent = mine ? '✅ Colocar' : '👆 Elegir columna';
+            $('#revealBtn').style.visibility = 'visible';
+        }, 650);
+    }, 120);
+}
+
+function resolveReveal(){
+    $('#revealOv').classList.remove('show');
+    const card = G.cards[G.held];
+    if(G.owners[card.theme] === G.cur){
+        G.cols[card.theme].placed.push(card.id);
+        G.held = null; G.phase = 'pick';
+        if(remaining(G.cur) === 0) return finish(G.cur);
+        if(allHiddenGone()) return finishByScore();
+        say(`🎉 ¡Bien! <b style="color:${PLAYER_COLORS[G.cur]}">${esc(config.players[G.cur])}</b> sigue jugando.`);
+    }else{
+        G.phase = 'bury';
+        say(`👆 Toca la columna donde quieres empujar la ficha <b>${esc(card.icon)} ${esc(card.text)}</b> por arriba.`);
+    }
+    render();
+}
+
+function bury(ci){
+    if(G.phase !== 'bury') return;
+    const card = G.cards[G.held];
+    card.seenBy = G.cur;
+    G.cols[ci].hidden.unshift(card.id); // entra por arriba y empuja la columna
+    G.held = null; G.phase = 'pick';
+    G.cur = 1 - G.cur;
+    say(`Turno de <b style="color:${PLAYER_COLORS[G.cur]}">${esc(config.players[G.cur])}</b>. Saca una ficha de abajo.`);
+    render();
+}
+
+function allHiddenGone(){ return G.cols.every(c => !c.hidden.length); }
+
+function finish(p){
+    G.phase = 'over';
+    say(`🏆 ¡<b style="color:${PLAYER_COLORS[p]}">${esc(config.players[p])}</b> colocó todas sus fichas y gana la partida!`);
+    render();
+    confetti(config.themes.filter((t, i) => G.owners[i] === p).map(t => t.icon));
+}
+function finishByScore(){
+    const a = placedOf(0), b = placedOf(1);
+    if(a === b){
+        G.phase = 'over';
+        say('🤝 Se voltearon todas las fichas: ¡empate!');
+        render();
+    }else finish(a > b ? 0 : 1);
+}
+
+function say(html){ $('#status').innerHTML = html; }
+
+/* ---------- Dibujo ---------- */
+function render(){
+    const themes = config.themes;
+    // marcador
+    $('#players').innerHTML = [0,1].map(p => {
+        const mine = themes.map((t, i) => ({t, i})).filter(x => G.owners[x.i] === p);
+        return `<div class="player ${G.cur === p && G.phase !== 'over' ? 'active' : ''}" style="--pc:${PLAYER_COLORS[p]}">
+            <h3 class="fun"><span class="dot"></span>${esc(config.players[p])}<span class="turn">Su turno</span></h3>
+            ${mine.map(({t, i}) => {
+                const total = t.cards.length, done = G.cols[i].placed.length;
+                return `<div class="prog" style="--tc:${t.color}">${esc(t.icon)} <span>${done}/${total}</span><div class="bar"><i style="width:${total ? done / total * 100 : 0}%"></i></div></div>`;
+            }).join('')}
+        </div>`;
+    }).join('');
+
+    // columnas
+    $('#board').innerHTML = themes.map((t, ci) => {
+        const col = G.cols[ci];
+        const owner = G.owners[ci];
+        const cls = G.phase === 'bury' ? 'target' : (G.phase === 'pick' && !col.hidden.length ? 'dim' : '');
+        const backs = col.hidden.map((id, k) => {
+            const c = G.cards[id];
+            const isBottom = k === col.hidden.length - 1;
+            const marked = c.seenBy !== null;
+            return `<div class="back${marked ? ' marked' : ''}${isBottom ? ' bottom' : ''}"${marked ? ` style="--mk:${PLAYER_COLORS[G.owners[c.theme]]}"` : ''}>${isBottom ? '⬇' : '✦'}</div>`;
+        }).join('');
+        return `<div class="col ${cls}" data-col="${ci}" data-icon="${esc(t.icon)}" style="--tc:${t.color}">
+            <div class="theme-card">
+                <span class="ic">${esc(t.icon)}</span>
+                <div class="nm">${esc(t.name)}</div>
+                <span class="ow">${esc(config.players[owner])}</span>
+            </div>
+            <div class="placed">${col.placed.map(id => {
+                const c = G.cards[id];
+                return `<div class="chip"><span>${esc(c.icon)}</span><b>${esc(c.text)}</b></div>`;
+            }).join('')}</div>
+            <div class="stack-label">${col.hidden.length} boca abajo</div>
+            <div class="stack">${backs}</div>
+            <button class="pull" data-pull="${ci}" ${G.phase !== 'pick' || !col.hidden.length ? 'disabled' : ''}>Sacar ↓</button>
+        </div>`;
+    }).join('');
+}
+
+function confetti(icons){
+    const pool = icons.concat(['🎉','⭐','✨']);
+    for(let i = 0; i < 40; i++){
+        const s = document.createElement('div');
+        s.className = 'confetti';
+        s.textContent = pool[i % pool.length];
+        s.style.left = Math.random() * 100 + 'vw';
+        s.style.animationDuration = 2 + Math.random() * 2.5 + 's';
+        s.style.animationDelay = Math.random() * .8 + 's';
+        document.body.appendChild(s);
+        setTimeout(() => s.remove(), 5500);
+    }
+}
+
+/* ---------- Ajustes ---------- */
+function openSettings(themes){
+    themes = themes || config.themes;
+    $('#p0name').value = config.players[0];
+    $('#p1name').value = config.players[1];
+    $('#assign').value = config.assign;
+    $('#setErr').textContent = '';
+    $('#themesEdit').innerHTML = themes.map((t, i) => `
+        <div class="tedit" style="--tc:${t.color}" data-t="${i}">
+            <div class="row">
+                <input type="text" class="icon" value="${esc(t.icon)}" maxlength="8" aria-label="Icono">
+                <input type="text" class="name" value="${esc(t.name)}" maxlength="40" aria-label="Nombre del tema ${i + 1}">
+                <input type="color" value="${t.color}" aria-label="Color">
+            </div>
+            <textarea aria-label="Fichas del tema ${i + 1}">${esc(t.cards.join('\n'))}</textarea>
+        </div>`).join('');
+    $('#themesEdit').querySelectorAll('input[type=color]').forEach(inp => {
+        inp.addEventListener('input', () => inp.closest('.tedit').style.setProperty('--tc', inp.value));
+    });
+    $('#setOv').classList.add('show');
+}
+
+function saveSettings(){
+    const themes = [...document.querySelectorAll('.tedit')].map(el => ({
+        icon: el.querySelector('.icon').value.trim() || '⭐',
+        name: el.querySelector('.name').value.trim(),
+        color: el.querySelector('input[type=color]').value,
+        cards: el.querySelector('textarea').value.split('\n').map(s => s.trim()).filter(Boolean)
+    }));
+    for(const [i, t] of themes.entries()){
+        if(!t.name) return $('#setErr').textContent = `El tema ${i + 1} necesita un nombre.`;
+        if(t.cards.length < 2 || t.cards.length > 12) return $('#setErr').textContent = `"${t.name}" debe tener entre 2 y 12 fichas (tiene ${t.cards.length}).`;
+    }
+    config = {
+        players: [$('#p0name').value.trim() || 'Jugador 1', $('#p1name').value.trim() || 'Jugador 2'],
+        assign: $('#assign').value,
+        themes
+    };
+    saveConfig();
+    $('#setOv').classList.remove('show');
+    newGame();
+}
+
+/* ---------- Eventos ---------- */
+$('#board').addEventListener('click', e => {
+    const p = e.target.closest('[data-pull]');
+    if(p) return pull(+p.dataset.pull);
+    const col = e.target.closest('.col');
+    if(col && G.phase === 'bury') bury(+col.dataset.col);
+});
+$('#revealBtn').addEventListener('click', resolveReveal);
+$('#btnNew').addEventListener('click', () => {
+    if(G.phase === 'over' || confirm('¿Empezar una nueva partida?')) newGame();
+});
+$('#btnRules').addEventListener('click', () => $('#rulesOv').classList.add('show'));
+$('#btnSettings').addEventListener('click', () => openSettings());
+$('#saveSet').addEventListener('click', saveSettings);
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => openSettings(clone(PRESETS[b.dataset.preset]))));
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => b.closest('.overlay').classList.remove('show')));
+
+newGame();
+try{
+    if(!localStorage.getItem(STORE_KEY + '.seen')){
+        $('#rulesOv').classList.add('show');
+        localStorage.setItem(STORE_KEY + '.seen', '1');
+    }
+}catch(e){}
+</script>
+</body>
+</html>
